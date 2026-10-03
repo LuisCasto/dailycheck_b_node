@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String      @id @default(uuid()) @db.Uuid
+  name           String
+  email          String      @unique
+  hashedPassword String      @map("hashed_password")
+  createdAt      DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
+  habits         Habit[]
+  logs           HabitLog[]
+
+  @@map("users")
+}
+
+model Habit {
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @map("user_id") @db.Uuid
+  name           String
+  description    String?
+  category       String?
+  icon           String?
+  dailyTask      String      @map("daily_task")
+  targetValue    Int?        @map("target_value")
+  unit           String?
+  frequency      String?
+  timesPerPeriod Int?        @map("times_per_period")
+  createdAt      DateTime?   @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs           HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String    @id @default(uuid()) @db.Uuid
+  habitId   String    @map("habit_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  date      DateTime  @db.Date
+  completed Boolean?
+  note      String?
+  loggedAt  DateTime? @default(now()) @map("logged_at") @db.Timestamptz(6)
+  habit     Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date], name: "uq_habit_log_per_day")
+  @@index([userId])
+  @@map("habit_logs")
+}
