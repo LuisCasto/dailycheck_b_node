@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "outDir": ".jest-build", "rootDir": "." },
+  "include": ["src", "tests/HW05"]
+}

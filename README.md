@@ -41,9 +41,25 @@ Run `migrate resolve` only after the SQL command succeeds. Subsequent deployment
 - `pnpm build`: compile TypeScript
 - `pnpm start`: run the compiled server
 - `pnpm typecheck`: type-check without emitting files
-- `pnpm test`: run tests
+- `pnpm test`: compile and run both Jest suites (16 AAA cases, including 10 JavaScript assertion-pattern tests)
+- `pnpm test:hw05`: run the six HW05 unit tests
+- `pnpm test:hw06`: run the ten HW06 JavaScript assertion-pattern tests
+- `pnpm test:health`: run the existing Vitest HTTP health smoke test
 - `pnpm db:migrate`: apply production migrations
 - `pnpm db:studio`: open Prisma Studio
+
+## Unit testing activity
+
+The isolated functions live in `src/services.ts` and are used by the existing routes. Both activities explicitly use Arrange, Act, Assert and require no database or `.env`.
+
+- **HW05:** `tests/HW05/unit-tests.test.ts` covers successful signup, duplicate signup, habit creation, completion logging, ownership rejection, and log toggling.
+
+- **HW06:** `tests/HW06/assertion-patterns.test.js` covers all six assertion patterns, including isolated login success/failure. Test names identify the patterns directly in the code.
+
+```powershell
+corepack pnpm test:hw05
+corepack pnpm test:hw06
+```
 
 ## API compatibility
 

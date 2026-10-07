@@ -12,8 +12,11 @@
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs",
+    "test:hw05": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --testPathPatterns=HW05",
+    "test:hw06": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --testPathPatterns=HW06",
+    "test:watch": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --watch",
+    "test:health": "vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio"
@@ -28,7 +31,10 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@jest/globals": "^30.5.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
+    "jest": "^30.5.2",
     "prisma": "^6.19.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",

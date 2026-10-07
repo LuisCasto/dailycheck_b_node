@@ -4,4 +4,7 @@ dist/
 .env.*
 !.env.example
 coverage/
+.jest-build/
 .DS_Store
+docs/
+*.zip

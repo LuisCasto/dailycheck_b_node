@@ -19,6 +19,7 @@ import {
   userUpdateSchema,
 } from "./schemas.js";
 import { habitOut, logOut, userOut } from "./serializers.js";
+import { signup, login, createHabit, toggleHabitLog } from "./services.js";
 
 async function currentUser(request: FastifyRequest) {
   return getCurrentUser(request);
@@ -45,23 +46,23 @@ export async function registerRoutes(app: FastifyInstance) {
 
   app.post("/api/auth/register", async (request, reply) => {
     const data = parseBody(userCreateSchema, request.body);
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) throw new HttpError(400, "Email ya registrado");
-    const user = await prisma.user.create({
-      data: { name: data.name, email: data.email, hashedPassword: await bcrypt.hash(data.password, 12) },
+    const user = await signup(data, {
+      findByEmail: (email) => prisma.user.findUnique({ where: { email } }),
+      hashPassword: (password) => bcrypt.hash(password, 12),
+      createUser: (data) => prisma.user.create({ data }),
     });
-    return reply.code(201).send(userOut(user));
+    return reply.code(201).send(user);
   });
 
   app.get("/api/auth/stats", async () => ({ total_users: await prisma.user.count() }));
 
   app.post("/api/auth/login", async (request) => {
     const data = parseBody(userLoginSchema, request.body);
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
-    if (!user || !(await bcrypt.compare(data.password, user.hashedPassword))) {
-      throw new HttpError(401, "Credenciales incorrectas");
-    }
-    return { access_token: await createAccessToken(user.id), token_type: "bearer" };
+    return login(data, {
+      findByEmail: (email) => prisma.user.findUnique({ where: { email } }),
+      verifyPassword: (password, hash) => bcrypt.compare(password, hash),
+      createToken: createAccessToken,
+    });
   });
 
   app.get("/api/auth/me", async (request) => userOut(await currentUser(request)));
@@ -115,21 +116,10 @@ export async function registerRoutes(app: FastifyInstance) {
   app.post("/api/habits", async (request, reply) => {
     const user = await currentUser(request);
     const data = parseBody(habitCreateSchema, request.body);
-    const habit = await prisma.habit.create({
-      data: {
-        userId: user.id,
-        name: data.name,
-        description: data.description,
-        category: data.category,
-        icon: data.icon,
-        dailyTask: data.daily_task,
-        targetValue: data.target_value ?? null,
-        unit: data.unit ?? null,
-        frequency: data.frequency,
-        timesPerPeriod: data.times_per_period,
-      },
+    const habit = await createHabit(user.id, data, {
+      createHabit: (data) => prisma.habit.create({ data }),
     });
-    return reply.code(201).send(habitOut(habit));
+    return reply.code(201).send(habit);
   });
 
   app.put("/api/habits/:habit_id", async (request) => {
@@ -174,16 +164,14 @@ export async function registerRoutes(app: FastifyInstance) {
   async function toggleLog(request: FastifyRequest, reply: { code: (status: number) => { send: (body?: unknown) => unknown } }) {
     const user = await currentUser(request);
     const data = parseBody(logCreateSchema, request.body);
-    await ownedHabit(data.habit_id, user.id);
-    const date = toDate(data.date);
-    const existing = await prisma.habitLog.findUnique({ where: { uq_habit_log_per_day: { habitId: data.habit_id, date } } });
-    if (existing) {
-      await prisma.habitLog.delete({ where: { id: existing.id } });
-      return reply.code(200).send({ detail: "Log eliminado", deleted: true, log_id: existing.id, habit_id: data.habit_id, date: data.date });
-    }
     try {
-      const log = await prisma.habitLog.create({ data: { habitId: data.habit_id, userId: user.id, date, completed: true, note: data.note ?? null } });
-      return reply.code(201).send(logOut(log));
+      const result = await toggleHabitLog(user.id, data, {
+        findOwnedHabit: (id, userId) => prisma.habit.findFirst({ where: { id, userId } }),
+        findLog: (habitId, date) => prisma.habitLog.findUnique({ where: { uq_habit_log_per_day: { habitId, date } } }),
+        createLog: (data) => prisma.habitLog.create({ data }),
+        deleteLog: (id) => prisma.habitLog.delete({ where: { id } }),
+      });
+      return reply.code(result.statusCode).send(result.body);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         throw new HttpError(400, "Ya existe un log para este habito en esa fecha");
