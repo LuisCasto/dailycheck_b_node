@@ -1,3 +1,5 @@
+// HW05: corepack pnpm test:hw05 | All homework: corepack pnpm test
+// Checks: corepack pnpm typecheck | corepack pnpm build
 import { describe, expect, it, jest } from "@jest/globals";
 import type { Habit, HabitLog, User } from "@prisma/client";
 import { createHabit, signup, toggleHabitLog, type HabitDependencies, type LogDependencies, type SignupDependencies } from "../../src/services.js";

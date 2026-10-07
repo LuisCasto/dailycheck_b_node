@@ -17,6 +17,7 @@
     "test:hw06": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --testPathPatterns=HW06",
     "test:watch": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --watch",
     "test:health": "vitest run",
+    "test:hw07": "tsc -p tsconfig.jest.json && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --testPathPatterns=HW07",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio"

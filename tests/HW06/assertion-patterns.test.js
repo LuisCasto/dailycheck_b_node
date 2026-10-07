@@ -1,3 +1,5 @@
+// HW06: corepack pnpm test:hw06 | All homework: corepack pnpm test
+// Checks: corepack pnpm typecheck | corepack pnpm build
 import { describe, expect, it, jest } from "@jest/globals";
 import { signup, login, createHabit, toggleHabitLog } from "../../.jest-build/src/services.js";
 
